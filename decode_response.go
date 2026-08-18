@@ -308,9 +308,14 @@ func (sp *SAMLServiceProvider) ValidateEncodedResponse(encodedResponse string) (
 	// storing our final response to return back
 	decodedResponse := &types.Response{}
 	// user has decided to skip signature verification
-	// just unmarshal the untrusted el
+	// decrypt assertions, but keep the resulting XML untrusted
 
 	if sp.SkipSignatureValidation {
+		err = sp.decryptAssertions(unverifiedResponse)
+		if err != nil {
+			return nil, err
+		}
+
 		err = xmlUnmarshalElement(unverifiedResponse, decodedResponse)
 		if err != nil {
 			return nil, fmt.Errorf("unable to unmarshal response: %v", err)
